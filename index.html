@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>원의 방정식 [고잔고]</title>
+    <style>
+        body, .tot {
+            margin: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .tot {
+            display: flex;
+        }
+        
+        .box {
+            padding: 20px;
+            width: 250px;
+            position: fixed;
+            right: 0;
+            display: block;
+            background-color: rgb(220, 220, 220);
+            border: 1px solid black;
+            box-shadow: -5px 5px 5px grey;
+        }
+
+        button.pop {
+            display: none;
+            margin: 20px;
+            position: fixed;
+            right: 0;
+            width: 30px;
+            height: 30px;
+            box-shadow: -5px 5px 5px grey;
+            font-size: larger;
+        }
+
+        button.close {
+            position: fixed;
+            right: 10px;
+            top: 10px;
+        }
+
+        button:hover {
+            cursor: pointer;
+        }
+        
+        div.res {
+            width: 50vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #canvas {
+            border: 3px solid black;
+        }
+
+        button.upd {
+            padding: 3px 20px;
+            margin-top: 5px;
+        }
+
+        div.list-wrap {
+            width: 50vw;
+            height: 60vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        div.list {
+            width: 40vw;
+            border: 1px solid black;
+            height: 50vh;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        div.acti {
+            width: 50vw;
+            height: 40vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .zoom {
+            width: 100px;
+            height: 30px;
+            display: flex;
+            justify-content: space-evenly;
+        }
+
+        .list > div.model {
+            width: 100%;
+            height: 50px;
+            padding: 10px 0;
+            border: 1px solid gray;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        div.mod-name {
+            width: 300px;
+            height: 50px;
+            margin: 0 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        button#del, button#reset {
+            background-color: red;
+            color: white;
+        }
+
+        div.number {
+            width: 50px;
+            height: 50px;
+            font-size: larger;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-right: 2px solid rgb(210, 210, 210);
+        }
+
+        td {
+            width: 150px;
+            padding: 10px 0;
+        }
+
+        div#guide-model {
+            width: 600px;
+            height: 600px;
+        }
+    </style>    
+</head>
+<body>
+    <button class="pop">↓</button>
+    <div class="box circle">
+        <button class="close">x</button>
+        <div>
+            <span>x좌표 : </span>
+            <input type="number" id="x">
+        </div>
+        <div>
+            <span>y좌표 : </span>
+            <input type="number" id="y">
+        </div>
+        <div>
+            <span>반지름 : </span>
+            <input type="number" id="r">
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+            <button class="updC">추가</button>
+            <button class="ctol" value="l" onclick="bxtype = this.value">직선의 방정식</button>
+        </div>
+    </div>
+    <div class="box line">
+        <button class="close">x</button>
+        <div>
+            <span>기울기 : </span>
+            <input type="number" id="lean">
+        </div>
+        <div>
+            <span>y절편 : </span>
+            <input type="number" id="y-int">
+        </div>  
+        <div style="display: flex; justify-content: space-between;">
+            <button class="updL">추가</button>
+            <button class="ltoc" value="c" onclick="bxtype = this.value;">원의 방정식</button>
+        </div>
+    </div>
+    <div class="tot">
+        <div class="res">
+            <canvas id="canvas" width="700px" height="700px"></canvas>
+        </div>
+        <div class="wrapper">
+            <div class="list-wrap">
+                <div class="list"></div>
+            </div>
+            <div class="acti">
+                <table>
+                    <tr>
+                        <td>확대</td>
+                        <td>
+                            <div class="zoom">
+                                <button id="dec" onclick="if (zoom <= 10) return; zoom-=10;">-</button>
+                                <span class="count">20%</span>
+                                <button id="inc" onclick="if (zoom >= 100) return; zoom+=10;">+</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <input id="func" style="width: 100%" type="text">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <button id="del">삭제</button>
+                        </td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <button id="dtol">두 교점을 지나가는 직선 생성하기</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <button id="calcd">직선과 원의 중심사이의 거리 구하기</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <button id="guide">사용방법 보기</button>
+                        </td>
+                        <td>
+                            <button id="reset">그래프 초기화</button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+    </div>
+    <script>
+        let zoom = 20;
+
+        const closAtC = document.querySelector('.circle > button.close');
+        const closAtL = document.querySelector('.line > button.close')
+        const box = document.querySelector('div.box');
+        const pop = document.querySelector('button.pop');
+        const updC = document.querySelector('button.updC');
+        const updL = document.querySelector('button.updL');
+        const res = document.querySelector('div.res');
+        const xPos = document.querySelector('input#x');
+        const yPos = document.querySelector('input#y');
+        const rInp = document.querySelector('input#r');
+        const cnt = document.querySelector('span.count');
+        const liWrap = document.querySelector('div.list');
+        const funcInp = document.querySelector('input#func');
+        const del = document.querySelector('button#del');
+        const reset = document.querySelector('button#reset');
+        const dToL = document.querySelector('button#dtol');
+        const cToL = document.querySelector('button.ctol');
+        const lToC = document.querySelector('button.ltoc');
+        const leanInp = document.querySelector('input#lean');
+        const yIntInp = document.querySelector('input#y-int');
+        const calcD = document.querySelector('button#calcd');
+        const guide = document.querySelector('button#guide');
+
+        let show = true;
+        let bxtype = 'c';
+        let boxSizX = 700;
+        let boxSizY = 700;
+        let xAxis = {
+            id: 'xAxis',
+            moveto: [0, boxSizY / 2],
+            lineto: [boxSizX, boxSizY / 2],
+        }
+        
+        let yAxis = {
+            id: 'yAxis',
+            moveto: [boxSizX / 2, 0],
+            lineto: [boxSizX / 2, boxSizY],
+        }
+        
+        let setLine = [xAxis, yAxis];
+        let setCircle = [];
+        let setList = [];
+        let cirNum = 1;
+
+        closAtC.onclick = () => {
+            show = false;
+        }
+        closAtL.onclick = () => {
+            show = false;
+        }
+        pop.onclick = () => {
+            show = true;
+        }
+        
+        del.onclick = () => {
+            let str = funcInp.value;
+            funcInp.value = ``;
+            if (str == ``) return;
+            let delli = str.split(',');
+            for (let i = delli.length; i > 0; i--) {
+                if (delli[i] == ``) {
+                    delli.splice(i, 1);
+                }
+            }
+            let saveLi = [...setList];
+            let saveC = [...setCircle];
+        
+            for (let i = delli.length; i > 0; i--) {
+                let elem = Number(delli[i - 1]);
+                for (let j = setList.length; j > 0; j--) {
+                    if (setList[j - 1] == 'empty' || setList[j - 1] == undefined) {continue;
+                    }else if (Number(setList[j - 1].id) == elem) {
+                        setList.splice(j - 1, 1); 
+                        delli.splice(i - 1, 1);
+                        setCircle.forEach((cir, ind1) => {
+                            if (Number(cir.id) == elem) {
+                                setCircle.splice(ind1, 1);
+                            }
+                        });
+                        setLine.forEach((line, ind2) => {
+                            if (Number(line.id) == elem) {
+                                setLine.splice(ind2, 1);
+                            }
+                        });
+                    }
+                }
+            }
+            
+            if (delli.length == 0) return;
+            window.alert("존재하지 않는 아이디가 포함되어 있습니다. 다시 시도해주세요.");
+            setList = saveLi;
+            setCircle = saveC;
+        }
+
+        dToL.onclick = () => {
+            let str = funcInp.value;
+            funcInp.value = ``;
+            if (str == ``) return;
+            let dataL = str.split(',');
+            for (let i = dataL.length; i > 0; i--) {
+                if (dataL[i] == ``) {
+                    dataL.splice(i, 1);
+                } 
+            }
+            if (dataL.length != 2) {
+                window.alert('원의 방정식을 두 개 선택해야 합니다. 다시 시도해주세요.');
+                return;
+            }
+            let dataC = [];
+            dataL.forEach((elem1, ind1) => {
+                setCircle.forEach((elem2, ind2) => {
+                    if (elem2.id == elem1) {
+                        dataC[ind1] = elem2;
+                    }
+                });
+            });
+            if (dataC.length != 2) {
+                window.alert("존재하지 않는 아이디가 포함되어 있습니다. 다시 시도해주세요.");
+                return;
+            }
+            let a1 = dataC[0].x;
+            let a2 = dataC[1].x;
+            let b1 = dataC[0].y;
+            let b2 = dataC[1].y;
+            let r1 = dataC[0].r;
+            let r2 = dataC[1].r;
+            let lean = (a1 - a2) / (b1 - b2) * -1
+            let yint = (a1**2 + b1**2 - r1**2 - a2**2 - b2**2 + r2**2) / 2 * (b1 - b2);
+            createLine(setLine, lean, yint);
+            createList(setList, null, null, null, lean, yint,'l');
+            // 2(a-a')x + 2(b-b')y - (a²+b²-r²-a'²-b'²+r²) = 0
+        }
+        
+        calcD.onclick = () => { // 거리 구하기
+            let str = funcInp.value;
+            funcInp.value = ``;
+            if (str == ``) return;
+            let dataL = str.split(',');
+            let dataC = [];
+            let checkC = false;
+            let checkL = false;
+            let cir;
+            let x, y;
+            let line;
+            let lean, yint;
+            dataL.forEach((elem1, ind1) => {
+                setList.forEach((elem2, ind2) => {
+                    if (elem2.id == elem1) {
+                        dataC[ind1] = elem2
+                    }
+                });
+            });
+            
+            dataC.forEach((val1) => {
+                if (val1.type == `c`) {
+                    setCircle.forEach((val2, ind2) => {
+                        if (val2.id == val1.id) {
+                            cir = val2;
+                        }
+                    });
+                    x = cir.x;
+                    y = cir.y;
+                    checkC = true;
+                } else if (val1.type == `l`) {
+                    setLine.forEach((val2, ind2) => {
+                        if (val2.id == val1.id) {
+                            line = val2;
+                        }
+                    });
+                    lean = line.lean;
+                    yint = line.yint;
+                    checkL = true;
+                }
+            })
+
+            if (!checkC || !checkL) {
+                window.alert('원 1개와 직선 1개를 선택해야 합니다. 다시 시도해주세요.');
+                return; 
+            }
+            
+            console.log(x, y, lean, yint);
+            let d = Math.abs(x * lean - y + yint) / Math.sqrt(x**2 + y**2)
+            window.alert(`원의 중심과 직선 사이의 거리는 ${d}(${Math.abs(x * lean - y + yint)} / √${lean**2 + 1**2})입니다.`);
+        }
+
+        reset.onclick = () => {
+            setList = [];
+            setCircle = [];
+            setLine = [xAxis, yAxis];
+        }
+
+        guide.onclick = () => {
+            window.alert(`1. 원의 방정식 추가
+- 입력창에 각각 x좌표, y좌표, 반지름을 입력하고 추가 버튼을 누르면 리스트에 원의 방정식이 추가되고 그래프에 원이 그려집니다.
+
+2. 직선의 방정식 추가
+- "직선의 방정식" 버튼을 누르면 창에 기울기와 y절편 입력칸이 나타납니다. 기울기와 y절편을 입력하면 리스트에 직선의 방정식이 추가되고 그래프에 직선이 그려집니다.
+
+3. 두 교점을 지나가는 직선 구하기
+- 확대 버튼 아래의 입력창에 두 개의 원의 방정식의 아이디(리스트의 왼쪽에 매겨진 숫자)를 띄어쓰기 없이 콤마(,)로 이어쓴 다음 버튼을 누르면 리스트에 직선의 방정식이 추가되고 그래프에 직선이 그려집니다.
+
+4. 직선과 원의 중심 사이의 거리 구하기
+- 확대 버튼 아래의 입력창에 1개의 원의 방정식과 1개의 직선의 방정식의 아이디를 띄어쓰기 없이 콤마(,)로 이어쓴 다음 버튼을 누르면 alert창에 거리가 나타납니다.
+
+5. 원/직선의 방정식 삭제
+- 확대 버튼 아래의 입력창에 삭제할 아이디를 쓴 다음(삭제할 아이디가 2개 이상일 경우 띄어쓰기 없이 콤마(,)로 이어쓴 다음) 버튼을 누르면 그래프와 리스트에서 방정식에 대한 데이터가 삭제됩니다.
+
+6. 3,4,5기능 입력창 입력 요령 
+- ex) 1,3 -> 작동(o) / 1,  3 -> 작동(x) / 1,3,,, 혹은 1,,,,3 혹은 ,,,,1,3 -> 작동(o) / 3,1 -> 작동(o) / 0,3 -> 작동(x)(존재하지 않는 아이디/삭제된 아이디가 포함되면 안 됨)`);
+        }
+        
+        const createGph = () => {
+            for (let i = 0; i * zoom < boxSizX / 2; i++) { // x축과 평행한 직선 긋기
+                const canvas = document.getElementById('canvas');
+                const ctx = canvas.getContext("2d");
+                ctx.beginPath();
+                ctx.moveTo(0, boxSizX / 2 - i * zoom);
+                ctx.lineTo(boxSizX,boxSizX / 2 - i * zoom); 
+                if (i % 5 == 0) {
+                    ctx.strokeStyle = 'black';
+                } else {
+                    ctx.strokeStyle = 'rgb(200, 200, 200)';
+                }
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            for (let i = 0; i * zoom < boxSizX / 2; i++) { // x축과 평행한 직선 긋기
+                const canvas = document.getElementById('canvas');
+                const ctx = canvas.getContext("2d");
+                ctx.beginPath();
+                ctx.moveTo(0, boxSizX / 2 + i * zoom);
+                ctx.lineTo(boxSizX,boxSizX / 2 + i * zoom); 
+                if (i % 5 == 0) {
+                    ctx.strokeStyle = 'black';
+                } else {
+                    ctx.strokeStyle = 'rgb(200, 200, 200)';
+                }
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            for (let i = 0; i * zoom < boxSizY / 2; i++) { // y축과 평행한 직선 긋기
+                const canvas = document.getElementById('canvas');
+                const ctx = canvas.getContext("2d");
+                ctx.beginPath();
+                ctx.moveTo(boxSizY / 2 - i * zoom, 0);
+                ctx.lineTo(boxSizY / 2 - i * zoom, boxSizY); 
+                if (i % 5 == 0) {
+                    ctx.strokeStyle = 'black';
+                } else {
+                    ctx.strokeStyle = 'rgb(200, 200, 200)';
+                }
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            for (let i = 0; i * zoom < boxSizY / 2; i++) { // y축과 평행한 직선 긋기
+                const canvas = document.getElementById('canvas');
+                const ctx = canvas.getContext("2d");
+                ctx.beginPath();
+                ctx.moveTo(boxSizY / 2 + i * zoom, 0);
+                ctx.lineTo(boxSizY / 2 + i * zoom, boxSizY); 
+                if (i % 5 == 0) {
+                    ctx.strokeStyle = 'black';
+                } else {
+                    ctx.strokeStyle = 'rgb(200, 200, 200)';
+                }
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+        }
+
+        const createO = (arr, x, y, r) => {// 새로운 원의 방정식(데이터) 추가
+            arr[arr.length] = {
+                id: `${cirNum}`,
+                x: x,
+                y: y,
+                r: r,
+            }
+        }
+        
+        const createList = (arr, x, y, r, lean, yint, type) => { // 리스트(데이터) 추가'
+            if (type == 'c') {
+                let strX = ``;
+                let strY = ``;
+                if (x > 0) {
+                    strX = `-${x}`;
+                } else if (x < 0) {
+                    strX = `+${x * -1}`;
+                } else {
+                    strX = x;
+                }
+                if (y > 0) {
+                    strY = `-${y}`;
+                } else if (y < 0) {
+                    strY = `+${y * -1}`;
+                } else {
+                    strY = y;
+                }
+                arr[cirNum - 1] = {
+                    id: `${cirNum}`,
+                    fx: `(x${strX})² + (y${strY})² = ${r ** 2}`,
+                    type: `c`, // circle
+                }
+            } else if (type == 'l') {
+                if (yint == 0) {
+                    arr[cirNum - 1] = {
+                        id: `${cirNum}`,
+                        fx: `y = ${lean}x`,
+                        type: `l`, // line
+                    }
+                } else if (lean == 0) {
+                    arr[cirNum - 1] = {
+                        id: `${cirNum}`,
+                        fx: `y = ${yint}`,
+                        type: `l`, // line
+                    }
+                } else {
+                    if (yint > 0) {
+                        arr[cirNum - 1] = {
+                            id: `${cirNum}`,
+                            fx: `y = ${lean}x + ${yint}`,
+                            type: `l`, // line
+                        }
+                    } else {
+                        arr[cirNum - 1] = {
+                            id: `${cirNum}`,
+                            fx: `y = ${lean}x ${yint}`,
+                            type: `l`, // line
+                        }
+                    }
+                }
+            }
+        }
+
+        const createLine = (arr, lean, yint) => { // 직선의 방정식(데이터) 추가
+            if (lean == 0) {
+                arr[arr.length] = {
+                    id: `${cirNum}`,
+                    // lean: [yint / lean * -1, 0], // x절편
+                    // yint: [0, yint * -1], // y절편
+                    moveto: [boxSizY / 2 * -1, yint * -1],
+                    lineto: [boxSizY / 2, yint * -1],
+                    lean: lean,
+                    yint: yint,
+                }
+            } else {
+                arr[arr.length] = {
+                    id: `${cirNum}`,
+                    // lean: [yint / lean * -1, 0], // x절편
+                    // yint: [0, yint * -1], // y절편
+                    moveto: [(35 + yint) / lean *-1, 35],
+                    lineto: [(-35 + yint) / lean *-1, -35],
+                    lean: lean,
+                    yint: yint,
+                }
+            }
+        }
+
+        const upd = () => { // 원의 방정식(데이터) 추가
+            if (bxtype == 'l') { // 직선의 방정식
+                let lean = Number(leanInp.value);
+                let yint = Number(yIntInp.value);
+                if (lean == `` && yint == ``) return;
+                createList(setList, null, null, null, lean, yint, 'l');
+                createLine(setLine, lean, yint);
+                leanInp.value = ``;
+                yIntInp.value = ``;
+            } else if (bxtype == 'c') { // 원의 방정식
+                let x = Number(xPos.value);
+                let y = Number(yPos.value);
+                let r = Number(rInp.value);
+                if ( r <= 0) return;
+                createO(setCircle, x, y, r);
+                createList(setList, x, y, r, null, null, 'c');
+                xPos.value = ``;
+                yPos.value = ``;
+                rInp.value = ``;
+            }
+            cirNum++;
+        }
+        
+        updC.onclick = () => {
+            upd();
+        }
+
+        updL.onclick = () => {
+            upd();
+        }
+
+        const rend = () => { // 추가모델 show기능, 캔버스 렌더링
+            liWrap.innerHTML = ``;
+            const canvas = document.getElementById('canvas');
+            canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (show) { // show == true
+                pop.style.display = "none";
+                if (bxtype == 'c') { // bxtype == true == 원
+                    document.querySelector('div.circle').style.display = "block";
+                    document.querySelector('div.line').style.display = "none";
+                } else if (bxtype == 'l'){ // bxtype == false == 선
+                    document.querySelector('div.circle').style.display = "none";
+                    document.querySelector('div.line').style.display = "block";
+                }
+            } else {
+                document.querySelector('div.circle').style.display = "none";
+                document.querySelector('div.line').style.display = "none";
+                pop.style.display = "block";
+            }
+
+            createGph();
+            
+            setLine.forEach(elem => { // x축, y축, 기타 일차함수 생성
+                const canvas = document.getElementById('canvas');
+                const ctx = canvas.getContext("2d");
+                ctx.beginPath();
+                ctx.moveTo(elem.moveto[0] * zoom + boxSizX / 2, elem.moveto[1] * zoom + boxSizY / 2);
+                ctx.lineTo(elem.lineto[0] * zoom + boxSizX / 2, elem.lineto[1] * zoom + boxSizY / 2); 
+                if (elem.id == `xAxis` || elem.id == `yAxis`) {
+                    ctx.moveTo(elem.moveto[0], elem.moveto[1]);
+                    ctx.lineTo(elem.lineto[0], elem.lineto[1]); 
+                    ctx.strokeStyle = `black`;
+                    ctx.lineWidth = 3;
+                }
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            });
+
+            setCircle.forEach(elem => { // 원 생성
+                const canvas = document.getElementById('canvas');
+                const ctx = canvas.getContext("2d");
+
+                ctx.beginPath();
+                ctx.arc(elem.x * zoom + boxSizX / 2, elem.y * zoom * -1 + boxSizY / 2 , elem.r * zoom, 0, 2*Math.PI); // 0 == 시작 각도, 2*Math.PI == 마지막 각도
+                ctx.stroke();
+            });
+
+            setList.forEach(val => { // 리스트 생성
+                const model = document.createElement('div');
+                model.classList.add('model');
+
+                const disp = document.createElement('div');
+                disp.style.display = `flex`;
+                disp.style.alignItems = `center`;
+
+                const num = document.createElement('div');
+                num.classList.add('number');
+                num.innerHTML = `${val.id}`;
+
+                const name = document.createElement('div');
+                name.classList.add('mod-name');
+                name.innerHTML = val.fx;
+
+                disp.appendChild(num);
+                disp.appendChild(name);
+                model.appendChild(disp);
+                liWrap.appendChild(model);
+            })  
+            cnt.innerHTML = `${zoom}%`;
+            requestAnimationFrame(rend);
+        }
+        requestAnimationFrame(rend);
+    </script>
+</body>
